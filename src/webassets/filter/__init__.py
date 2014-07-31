@@ -646,7 +646,14 @@ def unique_modules(directory):
     yields each entry as it is encountered
     """
     found = {}
-    for entry in sorted(os.listdir(directory)):
+
+    # this get's called with __file__ and fails if imported from a zip file
+    try:
+        entries = sorted(os.listdir(directory))
+    except OSError:
+        entries = []
+
+    for entry in entries:
         if entry.startswith('_'):
             continue 
         module = is_module(entry)
