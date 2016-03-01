@@ -53,6 +53,12 @@ Javascript compressors
 .. autoclass:: webassets.filter.jspacker.JSPacker
 
 
+``slimit``
+~~~~~~~~~~~~
+
+.. autoclass:: webassets.filter.slimit.Slimit
+
+
 CSS compressors
 ---------------
 
@@ -137,6 +143,18 @@ JS/CSS compilers
 .. autoclass:: webassets.filter.pyscss.PyScss
 
 
+``node-sass``
+~~~~~~~~~~
+
+.. autoclass:: webassets.filter.node_sass.NodeSass
+
+
+``node-scss``
+~~~~~~~~~~
+
+.. autoclass:: webassets.filter.node_sass.NodeSCSS
+
+
 ``stylus``
 ~~~~~~~~~~
 
@@ -147,6 +165,18 @@ JS/CSS compilers
 ~~~~~~~~~~~~~~~~
 
 .. autoclass:: webassets.filter.coffeescript.CoffeeScript
+
+
+``typescript``
+~~~~~~~~~~~~~~
+
+.. autoclass:: webassets.filter.typescript.TypeScript
+
+
+``requirejs``
+~~~~~~~~~~~~~
+
+.. autoclass:: webassets.filter.requirejs.RequireJSFilter
 
 
 JavaScript templates
@@ -194,7 +224,7 @@ Other
 
 
 ``autoprefixer``
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 .. autoclass:: webassets.filter.autoprefixer.AutoprefixerFilter
 

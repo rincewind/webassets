@@ -1,3 +1,4 @@
+import os
 from os import path
 from itertools import chain
 from webassets import six
@@ -203,6 +204,10 @@ class Resolver(object):
             if needle.startswith(candidate):
                 # Found it!
                 rel_path = needle[len(candidate)+1:]
+                # If there are any subdirs in rel_path, ensure
+                # they use HTML-style path separators, in case
+                # the local OS (Windows!) has a different scheme
+                rel_path = rel_path.replace(os.sep, "/")
                 return url_prefix_join(url, rel_path)
         raise ValueError('Cannot determine url for %s' % filepath)
 
@@ -387,7 +392,8 @@ class BundleRegistry(object):
 # filter setting might be CSSMIN_BIN.
 env_options = [
     'directory', 'url', 'debug', 'cache', 'updater', 'auto_build',
-    'url_expire', 'versions', 'manifest', 'load_path', 'url_mapping']
+    'url_expire', 'versions', 'manifest', 'load_path', 'url_mapping',
+    'cache_file_mode' ]
 
 
 class ConfigurationContext(object):
@@ -425,6 +431,23 @@ class ConfigurationContext(object):
             files.
         *"merge"*
             Merge the source files, but do not apply filters.
+    """)
+
+    def _set_cache_file_mode(self, mode):
+        self._storage['cache_file_mode'] = mode
+    def _get_cache_file_mode(self):
+        return self._storage['cache_file_mode']
+    cache_file_mode = property(_get_cache_file_mode, _set_cache_file_mode, doc=
+    """Controls the mode of files created in the cache. The default mode
+    is 0600.  Follows standard unix mode.
+    Possible values are any unix mode, e.g.:
+
+      ``0660``
+          Enable the group read+write bits
+
+      ``0666``
+          Enable world read+write bits
+
     """)
 
     def _set_cache(self, enable):
@@ -520,8 +543,6 @@ class ConfigurationContext(object):
           No manifest is used.
 
       Any custom manifest implementation.
-
-    The default value is ``None``.
     """)
 
     def _set_versions(self, versions):
@@ -705,6 +726,7 @@ class BaseEnvironment(BundleRegistry, ConfigurationContext):
         self.config.setdefault('load_path', [])
         self.config.setdefault('url_mapping', {})
         self.config.setdefault('resolver', self.resolver_class())
+        self.config.setdefault('cache_file_mode', None)
 
         self.config.update(config)
 

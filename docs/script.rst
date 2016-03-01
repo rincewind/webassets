@@ -2,7 +2,7 @@
 Command Line Interface
 ======================
 
-While it's often convienient to have webassets automatically rebuild
+While it's often convenient to have webassets automatically rebuild
 your bundles on access, you sometimes may prefer to build manually,
 for example for performance reasons in larger deployments.
 
@@ -19,7 +19,7 @@ within your framework. If that is not the case, read on.
 Build a custom command line client
 ----------------------------------
 
-In most cases, you can simple wrap around the ``webassets.script.main``
+In most cases, you can simply wrap around the ``webassets.script.main``
 function. For example, the command provided by Flask-Assets looks like
 this:
 
@@ -86,7 +86,7 @@ Start a daemon which monitors your bundle source files, and automatically
 rebuilds bundles when a change is detected.
 
 This can be useful during development, if building is not instantaneous, and
-you are loosing valuable time waiting for the build to finish while trying to
+you are losing valuable time waiting for the build to finish while trying to
 access your site.
 
 
