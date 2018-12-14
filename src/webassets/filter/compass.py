@@ -118,7 +118,7 @@ class Compass(Filter):
 
         Also, there's a bunch of other issues we need to work around:
 
-         - compass doesn't support given an explict output file, only a
+         - compass doesn't support given an explicit output file, only a
            "--css-dir" output directory.
 
            We have to "guess" the filename that will be created in that
@@ -242,6 +242,7 @@ class Compass(Filter):
                     os.mkdir(path.dirname(sourcemap_output_filepath))
                 sourcemap_output_file = open(sourcemap_output_filepath, 'w')
                 sourcemap_output_file.write(sourcemap_file.read())
+                sourcemap_file.close()
             try:
                 contents = output_file.read()
                 out.write(contents)

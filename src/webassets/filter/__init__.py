@@ -9,6 +9,7 @@ import subprocess
 import inspect
 import shlex
 import tempfile
+import pkgutil
 from webassets import six
 from webassets.six.moves import map
 from webassets.six.moves import zip
@@ -72,7 +73,7 @@ class option(tuple):
     """
     def __new__(cls, initarg, configvar=None, type=None):
         # If only one argument given, it is the configvar
-        if configvar is None:  
+        if configvar is None:
             configvar = initarg
             initarg = None
         return tuple.__new__(cls, (initarg, configvar, type))
@@ -456,10 +457,12 @@ class ExternalTool(six.with_metaclass(ExternalToolMetaclass, Filter)):
         self.subprocess(argv, out, data=data)
 
     @classmethod
-    def subprocess(cls, argv, out, data=None):
+    def subprocess(cls, argv, out, data=None, cwd=None):
         """Execute the commandline given by the list in ``argv``.
 
         If a byestring is given via ``data``, it is piped into data.
+
+        If ``cwd`` is not None, the process will be executed in that directory.
 
         ``argv`` may contain two placeholders:
 
@@ -511,6 +514,7 @@ class ExternalTool(six.with_metaclass(ExternalToolMetaclass, Filter)):
                     stdout=subprocess.PIPE,
                     stdin=subprocess.PIPE,
                     stderr=subprocess.PIPE,
+                    cwd=cwd,
                     shell=os.name == 'nt')
             except OSError:
                 raise FilterError('Program file not found: %s.' % argv[0])
@@ -519,7 +523,7 @@ class ExternalTool(six.with_metaclass(ExternalToolMetaclass, Filter)):
                 raise FilterError(
                     '%s: subprocess returned a non-success result code: '
                     '%s, stdout=%s, stderr=%s' % (
-                        cls.name or cls.__name__, 
+                        cls.name or cls.__name__,
                         proc.returncode, stdout, stderr))
             else:
                 if output_file.created:
@@ -532,6 +536,32 @@ class ExternalTool(six.with_metaclass(ExternalToolMetaclass, Filter)):
                 os.unlink(output_file.filename)
             if input_file.created:
                 os.unlink(input_file.filename)
+
+    @classmethod
+    def parse_binary(cls, string):
+        r"""
+        Parse a string for a binary (executable). Allow multiple arguments
+        to indicate the binary (as parsed by shlex).
+
+        Return a list of arguments suitable for passing to subprocess
+        functions.
+
+        >>> ExternalTool.parse_binary('/usr/bin/lessc')
+        ['/usr/bin/lessc']
+
+        >>> ExternalTool.parse_binary('node node_modules/bin/lessc')
+        ['node', 'node_modules/bin/lessc']
+
+        >>> ExternalTool.parse_binary('"binary with spaces"')
+        ['binary with spaces']
+
+        >>> ExternalTool.parse_binary(r'binary\ with\ spaces')
+        ['binary with spaces']
+
+        >>> ExternalTool.parse_binary('')
+        []
+        """
+        return shlex.split(string)
 
 
 class JavaTool(ExternalTool):
@@ -608,13 +638,13 @@ CODE_FILES = ['.py', '.pyc', '.so']
 
 def is_module(name):
     """Is this a recognized module type?
-    
+
     Does this name end in one of the recognized CODE_FILES extensions?
-    
-    The file is assumed to exist, as unique_modules has found it using 
+
+    The file is assumed to exist, as unique_modules has found it using
     an os.listdir() call.
-    
-    returns the name with the extension stripped (the module name) or 
+
+    returns the name with the extension stripped (the module name) or
         None if the name does not appear to be a module
     """
     for ext in CODE_FILES:
@@ -624,25 +654,25 @@ def is_module(name):
 
 def is_package(directory):
     """Is the (fully qualified) directory a python package?
-    
+
     """
     for ext in ['.py', '.pyc']:
         if os.path.exists(os.path.join(directory, '__init__'+ext)):
-            return True 
+            return True
 
 
 def unique_modules(directory):
-    """Find all unique module names within a directory 
-    
-    For each entry in the directory, check if it is a source 
-    code file-type (using is_code(entry)), or a directory with 
+    """Find all unique module names within a directory
+
+    For each entry in the directory, check if it is a source
+    code file-type (using is_code(entry)), or a directory with
     a source-code file-type at entry/__init__.py[c]?
-    
-    Filter the results to only produce a single entry for each 
+
+    Filter the results to only produce a single entry for each
     module name.
-    
+
     Filter the results to not include '_' prefixed names.
-    
+
     yields each entry as it is encountered
     """
     found = {}
@@ -655,7 +685,7 @@ def unique_modules(directory):
 
     for entry in entries:
         if entry.startswith('_'):
-            continue 
+            continue
         module = is_module(entry)
         if module:
             if module not in found:
@@ -663,18 +693,35 @@ def unique_modules(directory):
                 yield module
         elif is_package(os.path.join(directory, entry)):
             if entry not in found:
-                found[entry] = entry 
-                yield entry 
+                found[entry] = entry
+                yield entry
 
 
 def load_builtin_filters():
     from os import path
     import warnings
 
-    current_dir = path.dirname(__file__)
-    for name in unique_modules(current_dir):
+    # load modules to work based with and without pyinstaller
+    # from: https://github.com/webcomics/dosage/blob/master/dosagelib/loader.py
+    # see: https://github.com/pyinstaller/pyinstaller/issues/1905
 
-        module_name = 'webassets.filter.%s' % name
+    # load modules using iter_modules()
+    # (should find all filters in normal build, but not pyinstaller)
+    prefix = __name__ + '.'
+    module_names = [m[1] for m in pkgutil.iter_modules(__path__, prefix)]
+
+    # special handling for PyInstaller
+    importers = map(pkgutil.get_importer, __path__)
+    toc = set()
+    for i in importers:
+        if hasattr(i, 'toc'):
+            toc |= i.toc
+    for elm in toc:
+        if elm.startswith(prefix):
+            module_names.append(elm)
+
+    for module_name in module_names:
+        #module_name = 'webassets.filter.%s' % name
         try:
             module = import_module(module_name)
         except Exception as e:

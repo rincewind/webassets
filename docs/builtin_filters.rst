@@ -12,6 +12,11 @@ external tools.
 
 You can also write :doc:`custom filters <custom_filters>`.
 
+Javascript cross-compilers
+--------------------------
+
+.. autoclass:: webassets.filter.babel.Babel
+
 
 Javascript compressors
 ----------------------
@@ -91,11 +96,24 @@ CSS compressors
 
 .. autoclass:: webassets.filter.slimmer.CSSSlimmer
 
+``rcssmin``
+~~~~~~~~~~
+
+.. autoclass:: webassets.filter.rcssmin.RCSSMin
+
 
 .. _filters-css-compilers:
 
 JS/CSS compilers
 ----------------
+
+.. _filters-postcss:
+
+``postcss``
+~~~~~~~~~~~~~
+
+.. autoclass:: webassets.filter.postcss.PostCSS
+
 
 ``clevercss``
 ~~~~~~~~~~~~~
@@ -143,14 +161,20 @@ JS/CSS compilers
 .. autoclass:: webassets.filter.pyscss.PyScss
 
 
+``libsass``
+~~~~~~~~~~~
+
+.. autoclass:: webassets.filter.libsass.LibSass
+
+
 ``node-sass``
-~~~~~~~~~~
+~~~~~~~~~~~~~
 
 .. autoclass:: webassets.filter.node_sass.NodeSass
 
 
 ``node-scss``
-~~~~~~~~~~
+~~~~~~~~~~~~~
 
 .. autoclass:: webassets.filter.node_sass.NodeSCSS
 
